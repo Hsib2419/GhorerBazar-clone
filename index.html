@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ghorer Bazar</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* Carousel */
+    .carousel-track { display:flex; transition:transform 0.5s ease; }
+    .carousel-slide { min-width:100%; }
+    /* Category scroll hide scrollbar */
+    .cat-scroll::-webkit-scrollbar { display:none; }
+    .cat-scroll { -ms-overflow-style:none; scrollbar-width:none; }
+    /* Section headings underline style like ghorerbazar */
+    .section-heading { position:relative; display:inline-block; }
+    .section-heading::after { content:''; display:block; width:60px; height:3px; background:#e65100; margin-top:6px; border-radius:2px; }
+    /* Product card hover */
+    .prod-card { transition: box-shadow 0.2s, transform 0.2s; }
+    .prod-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.13); transform: translateY(-3px); }
+    /* Cart item qty buttons */
+    .qty-btn { width:26px; height:26px; border:1px solid #ccc; border-radius:4px; background:#f5f5f5; cursor:pointer; font-size:16px; line-height:1; }
+    /* Category nav active */
+    .cat-link { padding:6px 14px; border-radius:20px; font-size:13px; font-weight:500; white-space:nowrap; color:white; transition:all 0.2s; }
+    .cat-link:hover, .cat-link.active { background: #e65100; color:#fff; }
+    /* Ghorerbazar green */
+    :root { --gb-green: #2e7d32; --gb-light-green: #e8f5e9; --gb-orange: #e65100; }
+    .bg-gb { background:#f5f6f0; }
+    /* Brand marquee animation */
+    @keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+    .marquee-inner { display:flex; animation:marquee 22s linear infinite; width:max-content; }
+    .marquee-inner:hover { animation-play-state:paused; }
+    /* Tab active */
+    .tab-btn.active { background: #e65100; color:#fff; border-color:#e65100; }
+    /* Section background alternating */
+    .sec-alt { background:#f5f6f0; }
+    body { font-family: 'Segoe UI', sans-serif; background:#fff; color:#222; padding-bottom:56px; }
+    @media(min-width:768px){ body{padding-bottom:0;} }
+
+    /* Add to Cart - now the secondary/outlined style */
+.add-to-cart-btn {
+  border: 1.5px solid #2e7d32;
+  color: #2e7d32;
+  background: #fff;
+  transition: all 0.2s;
+}
+.add-to-cart-btn:hover {
+  background: #2e7d32;
+  color: #fff;
+}
+/* Buy Now - now the bold filled style */
+.buy-now-btn {
+  background: #e65100;
+  color: #fff;
+  border: 1.5px solid #e65100;
+  transition: all 0.2s;
+}
+.buy-now-btn:hover {
+  background: #000;
+  border-color: #000;
+  color: #fff;
+}
+.cart-actions { display: flex; gap: 6px; margin-top: 8px; }
+.cart-actions .add-to-cart-btn,
+.cart-actions .buy-now-btn { flex: 1; margin-top: 0; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="bg-white flex justify-between items-center px-4 sm:px-6 py-3 shadow-md sticky top-0 z-50 border-b border-gray-100">
+  <div class="flex items-center gap-3">
+    <div class="flex items-center gap-4">
+      <button id="mobile-menu-btn" class="md:hidden text-black hover:text-orange-500 focus:outline-none flex flex-col gap-[5px] justify-center items-start w-6 h-6" aria-label="Toggle Menu">
+        <span class="h-[2.5px] w-5 bg-current rounded-full"></span>
+        <span class="h-[2.5px] w-3 bg-current rounded-full"></span>
+        <span class="h-[2.5px] w-6 bg-current rounded-full"></span>
+      </button>
+
+      <a href="#" class="flex items-center">
+        <img src="https://backoffice.ghorerbazar.com/company_logo/qJaKf1768887846.png" alt="Ghorer Bazar Logo" class="h-10 w-auto" />
+      </a>
+    </div>
+  </div>
+
+  <div class="hidden md:flex flex-1 mx-6 border-2 border-orange-500 rounded-full px-4 py-2 items-center bg-white max-w-xl">
+    <input type="text" id="search-input" placeholder="Search for products, brands..." class="flex-1 outline-none text-sm text-gray-700" />
+    <button class="text-orange-700 font-bold ml-2"><i data-lucide="search" class="w-5 h-5"></i></button>
+  </div>
+
+  <div class="flex items-center gap-5">
+    <!-- Track Order Icon -->
+    <button class="hidden sm:flex text-gray-600 hover:text-orange-500" aria-label="Track Order">
+      <i data-lucide="package" class="w-6 h-6"></i>
+    </button>
+
+    <!-- Free Delivery Icon -->
+    <span class="hidden sm:flex text-orange-500" aria-label="Free Delivery">
+      <i data-lucide="truck" class="w-6 h-6"></i>
+    </span>
+
+    <!-- Wishlist Icon -->
+    <button class="hidden sm:flex text-gray-700 hover:text-orange-500" aria-label="Wishlist">
+      <i data-lucide="heart" class="w-6 h-6"></i>
+    </button>
+
+    <!-- Cart -->
+    <button id="cart-btn" class="relative flex items-center gap-1 text-sm font-semibold text-gray-700 hover:text-orange-500">
+      <i data-lucide="shopping-cart" class="w-6 h-6"></i> Cart <span id="cart-count" class="bg-orange-500 text-white rounded-full text-xs px-2 py-0.5">0</span>
+    </button>
+
+    <!-- Account Icon -->
+    <button class="hidden sm:flex text-gray-700 hover:text-orange-500" aria-label="Account">
+      <i data-lucide="user" class="w-6 h-6"></i>
+    </button>
+  </div>
+</header>
+
+<!-- CART SIDEBAR -->
+<div id="cart-sidebar" class="fixed top-0 right-0 h-full w-80 bg-white shadow-2xl translate-x-full transition-transform duration-300 z-[60] flex flex-col">
+  <div class="flex justify-between items-center p-4 border-b bg-orange-500 text-white">
+    <h2 class="font-bold text-lg flex items-center gap-2"><i data-lucide="shopping-cart" class="w-5 h-5"></i> Your Cart</h2>
+    <button id="cart-close-btn" class="text-white text-xl font-bold"><i data-lucide="x" class="w-5 h-5"></i></button>
+  </div>
+
+  <div class="p-4 border-b bg-orange-100">
+    <p class="text-sm text-gray-700">Add <span id="amount-left" class="font-bold text-orange-700">৳3,000</span> more for <strong>FREE delivery!</strong></p>
+    <div class="bg-gray-200 rounded-full h-2 mt-2">
+      <div id="progress-fill" class="bg-orange-600 rounded-full h-2 transition-all duration-500" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div id="cart-items-list" class="flex-1 overflow-y-auto px-4 py-2">
+    <p id="empty-cart-msg" class="text-gray-400 text-center mt-16 text-sm">Your cart is empty 🛒</p>
+  </div>
+
+  <div class="p-4 border-t bg-white shadow-inner">
+    <p class="flex justify-between font-semibold mb-3 text-black">Subtotal: <span id="cart-subtotal" class="text-orange-700">৳0</span></p>
+    <button class="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600 transition">Proceed to Checkout →</button>
+  </div>
+</div>
+<div id="cart-overlay" class="hidden fixed inset-0 bg-black/50 z-50"></div>
+
+<!-- CATEGORY NAV -->
+<nav class="bg-black border-b border-gray-200 sticky top-[57px] z-40 shadow-sm">
+  <div class="cat-scroll flex gap-1 px-4 py-2 overflow-x-auto items-center">
+    <a href="#" class="cat-link active "> All</a>
+    <a href="#" class="cat-link"> Combos</a>
+    <a href="#" class="cat-link"> Offer Zone</a>
+    <a href="#" class="cat-link"> Fruits</a>
+    <a href="#" class="cat-link"> Honey</a>
+    <a href="#" class="cat-link"> Oil &amp; Ghee</a>
+    <a href="#" class="cat-link"> Dates</a>
+    <a href="#" class="cat-link"> Spices</a>
+    <a href="#" class="cat-link"> Nuts &amp; Seeds</a>
+    <a href="#" class="cat-link"> Beverage</a>
+    <a href="#" class="cat-link"> Rice</a>
+    <a href="#" class="cat-link"> Mango</a>
+    <a href="#" class="cat-link"> Organic</a>
+  </div>
+</nav>
+
+<!-- HERO CAROUSEL -->
+<section class="relative overflow-hidden bg-gray-50">
+  <div class="carousel-wrapper overflow-hidden">
+    <div class="carousel-track" id="carouselTrack">
+      <div class="carousel-slide">
+        <a href="#"><img src="https://backoffice.ghorerbazar.com/banner/4gCNY1781697899-dark-1000x400.png" alt="Promo 1" class="w-full h-auto max-h-[420px] object-cover" /></a>
+      </div>
+      <div class="carousel-slide">
+        <a href="#"><img src="https://backoffice.ghorerbazar.com/banner/wvLKI1771837751.jpeg" alt="Promo 2" class="w-full h-auto max-h-[420px] object-cover" /></a>
+      </div>
+      <div class="carousel-slide">
+        <a href="#"><img src="https://backoffice.ghorerbazar.com/banner/sCUkg1774768074-dark.png" alt="Promo 3" class="w-full h-auto max-h-[420px] object-cover" /></a>
+      </div>
+      <div class="carousel-slide">
+        <a href="#"><img src="https://backoffice.ghorerbazar.com/banner/5vlkL1778734911-dark-1000x400.png" alt="Promo 4" class="w-full h-auto max-h-[420px] object-cover" /></a>
+      </div>
+    </div>
+  </div>
+  <!-- Prev/Next -->
+  <button id="carousel-prev" class="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white w-10 h-10 rounded-full shadow-md text-xl font-bold text-gray-700 z-10 flex items-center justify-center">‹</button>
+  <button id="carousel-next" class="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white w-10 h-10 rounded-full shadow-md text-xl font-bold text-gray-700 z-10 flex items-center justify-center">›</button>
+  <!-- Dots -->
+  <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10" id="carouselDots"></div>
+</section>
+
+<!-- FEATURED CATEGORIES -->
+<section class="py-8 text-center px-4 bg-white">
+  <h2 class="text-xl font-bold mb-1 section-heading mx-auto">Featured Categories</h2>
+  <p class="text-gray-500 text-sm mb-6 mt-2">Shop by your favourite categories</p>
+  <div class="grid grid-cols-4 sm:grid-cols-7 gap-4 max-w-4xl mx-auto">
+    <div class="flex flex-col items-center gap-2 cursor-pointer group">
+      <div class="w-16 h-16 rounded-full bg-green-50 border-2 border-green-100 group-hover:border-green-500 overflow-hidden transition-all">
+        <img src="https://backoffice.ghorerbazar.com/productImages/BE5TP1781520550.png" alt="Oil & Ghee" class="w-full h-full object-cover" />
+      </div>
+      <p class="text-xs font-medium text-gray-700">Oil &amp; Ghee</p>
+    </div>
+    <div class="flex flex-col items-center gap-2 cursor-pointer group">
+      <div class="w-16 h-16 rounded-full bg-yellow-50 border-2 border-yellow-100 group-hover:border-yellow-500 overflow-hidden transition-all">
+        <img src="https://backoffice.ghorerbazar.com/productImages/JdeWl1767418564.jpg" alt="Honey" class="w-full h-full object-cover" />
+      </div>
+      <p class="text-xs font-medium text-gray-700">Honey</p>
+    </div>
+    <div class="flex flex-col items-center gap-2 cursor-pointer group">
+      <div class="w-16 h-16 rounded-full bg-orange-50 border-2 border-orange-100 group-hover:border-orange-500 overflow-hidden transition-all">
+        <img src="https://backoffice.ghorerbazar.com/productImages/YOL6J1767074338.jpg" alt="Dates" class="w-full h-full object-cover" />
+      </div>
+      <p class="text-xs font-medium text-gray-700">Dates</p>
+    </div>
+    <div class="flex flex-col items-center gap-2 cursor-pointer group">
+      <div class="w-16 h-16 rounded-full bg-red-50 border-2 border-red-100 group-hover:border-red-500 overflow-hidden transition-all">
+        <img src="https://backoffice.ghorerbazar.com/productImages/t44nb1767261833.jpg" alt="Spices" class="w-full h-full object-cover" />
+      </div>
+      <p class="text-xs font-medium text-gray-700">Spices</p>
+    </div>
+    <div class="flex flex-col items-center gap-2 cursor-pointer group">
+      <div class="w-16 h-16 rounded-full bg-amber-50 border-2 border-amber-100 group-hover:border-amber-500 overflow-hidden transition-all">
+        <img src="https://backoffice.ghorerbazar.com/productImages/0LySu1767442263.jpg" alt="Rice" class="w-full h-full object-cover" />
+      </div>
+      <p class="text-xs font-medium text-gray-700">Rice</p>
+    </div>
+    <div class="flex flex-col items-center gap-2 cursor-pointer group">
+      <div class="w-16 h-16 rounded-full bg-yellow-50 border-2 border-yellow-100 group-hover:border-yellow-500 overflow-hidden transition-all">
+        <img src="https://backoffice.ghorerbazar.com/productImages/CvT2N1767414529.jpg" alt="Mango" class="w-full h-full object-cover" />
+      </div>
+      <p class="text-xs font-medium text-gray-700">Mango</p>
+    </div>
+    <div class="flex flex-col items-center gap-2 cursor-pointer group">
+      <div class="w-16 h-16 rounded-full bg-green-50 border-2 border-green-100 group-hover:border-green-500 overflow-hidden transition-all">
+        <img src="https://backoffice.ghorerbazar.com/productImages/vkVdH1767248022.jpg" alt="Nuts" class="w-full h-full object-cover" />
+      </div>
+      <p class="text-xs font-medium text-gray-700">Nuts &amp; Seeds</p>
+    </div>
+  </div>
+</section>
+
+<!-- TOP SELLING PRODUCTS -->
+<section class="px-4 sm:px-6 py-8 bg-gb">
+  <div class="flex justify-between items-center mb-5">
+    <div>
+      <h2 class="text-xl font-bold section-heading">Top Selling Products</h2>
+      <p class="text-sm text-gray-500 mt-2">Our most loved items by customers</p>
+    </div>
+    <a href="#" class="text-orange-700 text-sm font-semibold border border-orange-600 px-4 py-1.5 rounded-full hover:bg-orange-700 hover:text-white transition">View all →</a>
+  </div>
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+    <div class="prod-card bg-white border border-gray-100 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">Save 8%</span>
+      <img src="https://backoffice.ghorerbazar.com/productImages/vkVdH1767248022.jpg" alt="Mustard oil" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Deshi Mustard Oil 5 liter</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳1,550</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Deshi Mustard Oil 5 liter" data-product-id="1" data-price="1550">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Deshi Mustard Oil 5 liter" data-product-id="1" data-price="1550" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border border-gray-100 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">Save 8%</span>
+      <img src="https://backoffice.ghorerbazar.com/productImages/CvT2N1767414529.jpg" alt="Honey" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Sundarban Honey 1kg</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳2,300</span>
+        <span class="line-through text-gray-400 text-xs">৳2,500</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Sundarban Honey 1kg" data-product-id="2" data-price="2300">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Sundarban Honey 1kg" data-product-id="2" data-price="2300" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border border-gray-100 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">Save 8%</span>
+      <img src="https://backoffice.ghorerbazar.com/productImages/bcBTR1781518012.png" alt="Ghee" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Gawa Ghee 1kg</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳1,800</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Gawa Ghee 1kg" data-product-id="3" data-price="1800">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Gawa Ghee 1kg" data-product-id="3" data-price="1800" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border border-gray-100 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">Save 6%</span>
+      <img src="https://backoffice.ghorerbazar.com/productImages/1767418525gNOLj.jpg" alt="Black seed honey" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Black Seed Honey 1kg</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳1,500</span>
+        <span class="line-through text-gray-400 text-xs">৳1,600</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Black Seed Honey 1kg" data-product-id="4" data-price="1500">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Black Seed Honey 1kg" data-product-id="4" data-price="1500" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border border-gray-100 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-orange-600 text-white text-xs px-2 py-0.5 rounded-full">New</span>
+      <img src="https://backoffice.ghorerbazar.com/productImages/WzvLW1771392026.jpg" alt="Coconut Oil" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Pure Coconut Oil 1L</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳980</span>
+        <span class="line-through text-gray-400 text-xs">৳1,100</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Pure Coconut Oil 1L" data-product-id="5" data-price="980">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Pure Coconut Oil 1L" data-product-id="5" data-price="980" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BRANDS STRIP (Marquee like ghorerbazar) -->
+<section class="py-8 bg-white border-y border-gray-100 overflow-hidden">
+  <h2 class="text-xl font-bold text-center mb-5 section-heading mx-auto">Our Trusted Brands</h2>
+  <div class="overflow-hidden">
+    <div class="marquee-inner gap-12 items-center">
+      <img src="https://backoffice.ghorerbazar.com/brand_images/7hNKq1768887947.png" alt="Brand 1" class="h-12 object-contain grayscale hover:grayscale-0 transition mx-8" />
+      <img src="https://backoffice.ghorerbazar.com/brand_images/RNTIU1763611802.png" alt="Brand 2" class="h-12 object-contain grayscale hover:grayscale-0 transition mx-8" />
+      <img src="https://backoffice.ghorerbazar.com/brand_images/8Gpl21757919440.png" alt="Brand 3" class="h-12 object-contain grayscale hover:grayscale-0 transition mx-8" />
+      <img src="https://backoffice.ghorerbazar.com/brand_images/7hNKq1768887947.png" alt="Brand 4" class="h-12 object-contain grayscale hover:grayscale-0 transition mx-8" />
+      <img src="https://backoffice.ghorerbazar.com/brand_images/RNTIU1763611802.png" alt="Brand 5" class="h-12 object-contain grayscale hover:grayscale-0 transition mx-8" />
+      <img src="https://backoffice.ghorerbazar.com/brand_images/8Gpl21757919440.png" alt="Brand 6" class="h-12 object-contain grayscale hover:grayscale-0 transition mx-8" />
+      <!-- Duplicate for seamless loop -->
+      <img src="https://backoffice.ghorerbazar.com/brand_images/7hNKq1768887947.png" alt="Brand 1" class="h-12 object-contain grayscale hover:grayscale-0 transition mx-8" />
+      <img src="https://backoffice.ghorerbazar.com/brand_images/RNTIU1763611802.png" alt="Brand 2" class="h-12 object-contain grayscale hover:grayscale-0 transition mx-8" />
+      <img src="https://backoffice.ghorerbazar.com/brand_images/8Gpl21757919440.png" alt="Brand 3" class="h-12 object-contain grayscale hover:grayscale-0 transition mx-8" />
+      <img src="https://backoffice.ghorerbazar.com/brand_images/7hNKq1768887947.png" alt="Brand 4" class="h-12 object-contain grayscale hover:grayscale-0 transition mx-8" />
+      <img src="https://backoffice.ghorerbazar.com/brand_images/RNTIU1763611802.png" alt="Brand 5" class="h-12 object-contain grayscale hover:grayscale-0 transition mx-8" />
+      <img src="https://backoffice.ghorerbazar.com/brand_images/8Gpl21757919440.png" alt="Brand 6" class="h-12 object-contain grayscale hover:grayscale-0 transition mx-8" />
+    </div>
+  </div>
+</section>
+
+<!-- MANGO SECTION -->
+<section class="px-4 sm:px-6 py-8 bg-gb">
+  <div class="flex justify-between items-center mb-5">
+    <div>
+      <h2 class="text-xl font-bold section-heading">Fresh Mangoes</h2>
+      <p class="text-sm text-gray-500 mt-2">Handpicked from the finest orchards</p>
+    </div>
+    <a href="#" class="text-orange-700 text-sm font-semibold border border-orange-700 px-4 py-1.5 rounded-full hover:bg-orange-700 hover:text-white transition">View all →</a>
+  </div>
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+    <div class="prod-card bg-white border border-gray-100 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-yellow-500 text-white text-xs px-2 py-0.5 rounded-full">Seasonal</span>
+      <img src="https://backoffice.ghorerbazar.com/productImages/a2xDW1780810652.jpg" alt="Amrapali Mango" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Amrapali Mango 20kg</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳3000</span>
+        <span class="line-through text-gray-400 text-xs">৳420</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Amrapali Mango 20kg" data-product-id="10" data-price="3000">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Amrapali Mango 20kg" data-product-id="10" data-price="3000" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border border-gray-100 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">Popular</span>
+      <img src="https://backoffice.ghorerbazar.com/productImages/a2xDW1780810652.jpg" alt="Amrapali Mango" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Amrapali Mango 10kg</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳1600</span>
+        <span class="line-through text-gray-400 text-xs">৳720</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Amrapali Mango 10kg" data-product-id="11" data-price="1600">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Amrapali Mango 10kg" data-product-id="11" data-price="1600" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border border-gray-100 rounded-xl p-3 relative">
+      <img src="https://backoffice.ghorerbazar.com/productImages/a2xDW1780810652.jpg" alt="Amrapali Mango" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Amrapali Mango 5kg</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳850</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Amrapali Mango 5kg" data-product-id="12" data-price="850">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Amrapali Mango 5kg" data-product-id="12" data-price="850" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border border-gray-100 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-orange-600 text-white text-xs px-2 py-0.5 rounded-full">Organic</span>
+      <img src="https://backoffice.ghorerbazar.com/productImages/a2xDW1780810652.jpg" alt="Amrapali Mango" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Amrapali Mango 25kg</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳3750</span>
+        <span class="line-through text-gray-400 text-xs">৳4000</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Amrapali Mango 25kg" data-product-id="13" data-price="3750">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Amrapali Mango 25kg" data-product-id="13" data-price="3750" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border border-gray-100 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">Save 10%</span>
+      <img src="https://backoffice.ghorerbazar.com/productImages/a2xDW1780810652.jpg" alt="Amrapali Mango" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Amrapali Mango 2kg</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳300</span>
+        <span class="line-through text-gray-400 text-xs">৳425</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Amrapali Mango 2kg" data-product-id="14" data-price="300">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Amrapali Mango 2kg" data-product-id="14" data-price="300" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ALL NATURAL HONEY -->
+<section class="px-4 sm:px-6 py-8 bg-white">
+  <div class="flex justify-between items-center mb-5">
+    <div>
+      <h2 class="text-xl font-bold section-heading">All Natural Honey</h2>
+      <p class="text-sm text-gray-500 mt-2">100% pure, unprocessed honey from nature</p>
+    </div>
+    <a href="#" class="text-orange-700 text-sm font-semibold border border-orange-600 px-4 py-1.5 rounded-full hover:bg-orange-700 hover:text-white transition">View all →</a>
+  </div>
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+    <div class="prod-card bg-white border border-yellow-100 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-yellow-500 text-white text-xs px-2 py-0.5 rounded-full">Pure</span>
+      <img src="https://backoffice.ghorerbazar.com/productImages/CvT2N1767414529.jpg" alt="Sundarban Honey" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Sundarban Forest Honey 500g</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳1,200</span>
+        <span class="line-through text-gray-400 text-xs">৳1,400</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Sundarban Forest Honey 500g" data-product-id="20" data-price="1200">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Sundarban Forest Honey 500g" data-product-id="20" data-price="1200" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border border-yellow-100 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">Save 10%</span>
+      <img src="https://backoffice.ghorerbazar.com/productImages/1767418525gNOLj.jpg" alt="Black Seed Honey" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Black Seed Honey 1kg</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳1,500</span>
+        <span class="line-through text-gray-400 text-xs">৳1,700</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Black Seed Honey 1kg" data-product-id="21" data-price="1500">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Black Seed Honey 1kg" data-product-id="21" data-price="1500" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border border-yellow-100 rounded-xl p-3 relative">
+      <img src="https://backoffice.ghorerbazar.com/productImages/JdeWl1767418564.jpg" alt="Mustard Flower Honey" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Mustard Flower Honey 1kg</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳900</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Mustard Flower Honey 1kg" data-product-id="22" data-price="900">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Mustard Flower Honey 1kg" data-product-id="22" data-price="900" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border border-yellow-100 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-orange-600 text-white text-xs px-2 py-0.5 rounded-full">Organic</span>
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTtFbmvb3J6r88NnF43pS_exsLLYjhjKP43Rg&s" alt="Wild Honey" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Wild Forest Honey 250g</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳700</span>
+        <span class="line-through text-gray-400 text-xs">৳800</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Wild Forest Honey 250g" data-product-id="23" data-price="700">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Wild Forest Honey 250g" data-product-id="23" data-price="700" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border border-yellow-100 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">Save 12%</span>
+      <img src="https://arphishop.com/wp-content/uploads/2024/01/Litchi-Flower-Honey-1.jpg" alt="Litchi Honey" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Litchi Blossom Honey 500g</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳1,100</span>
+        <span class="line-through text-gray-400 text-xs">৳1,250</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Litchi Blossom Honey 500g" data-product-id="24" data-price="1100">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Litchi Blossom Honey 500g" data-product-id="24" data-price="1100" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+  </div>  
+</section>
+
+<!-- COMBO DEALS -->
+<section class="px-4 sm:px-6 py-8 bg-gb">
+  <div class="flex justify-between items-center mb-5">
+    <div>
+      <h2 class="text-xl font-bold section-heading">Exclusive Combo Deals</h2>
+      <p class="text-sm text-gray-500 mt-2">Save more with our handpicked bundles</p>
+    </div>
+    <a href="#" class="text-orange-700 text-sm font-semibold border border-orange-700 px-4 py-1.5 rounded-full hover:bg-orange-700 hover:text-white transition">View All →</a>
+  </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+    <div class="prod-card relative border border-gray-100 rounded-xl p-3 bg-white">
+      <span class="absolute top-2 right-2 bg-orange-500 text-white rounded-full px-2 py-0.5 text-xs font-semibold">Save 12%</span>
+      <img src="https://backoffice.ghorerbazar.com/storage/combos/gallery/umjtXzzuyIwjr7l6flICN8Bz70WVhCWLtDpPN4kz.jpg" alt="Combo deal" class="w-full rounded-lg" />
+      <h3 class="font-semibold mt-2 text-black">Ghee &amp; Honey Sachet Combo</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳1,000</span>
+        <span class="line-through text-gray-400 text-sm">৳1,140</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Ghee & Honey Sachet Combo" data-product-id="30" data-price="1000">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Ghee & Honey Sachet Combo" data-product-id="30" data-price="1000" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card relative border border-gray-100 rounded-xl p-3 bg-white">
+      <span class="absolute top-2 right-2 bg-orange-500 text-white rounded-full px-2 py-0.5 text-xs font-semibold">Save 14%</span>
+      <img src="https://backoffice.ghorerbazar.com/storage/combos/jKGn1mEx0rH62pOSk1bgTcAJmSTZyu0AnUQpolx6.jpg" alt="Combo deal" class="w-full rounded-lg" />
+      <h3 class="font-semibold mt-2 text-black">Spice &amp; Honey Sachet Combo</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳1,500</span>
+        <span class="line-through text-gray-400 text-sm">৳1,740</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Spice & Honey Sachet Combo" data-product-id="31" data-price="1500">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Spice & Honey Sachet Combo" data-product-id="31" data-price="1500" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card relative border border-gray-100 rounded-xl p-3 bg-white">
+      <span class="absolute top-2 right-2 bg-orange-500 text-white rounded-full px-2 py-0.5 text-xs font-semibold">Save 11%</span>
+      <img src="https://backoffice.ghorerbazar.com/storage/combos/ztrD8icsvD9WTmxrynf3WPrW3oO7DzvSzjkhGAL4.jpg" alt="Combo deal" class="w-full rounded-lg" />
+      <h3 class="font-semibold mt-2 text-black">Oil &amp; Honey Sachet Combo</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳1,800</span>
+        <span class="line-through text-gray-400 text-sm">৳2,040</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Oil & Honey Sachet Combo" data-product-id="32" data-price="1800">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Oil & Honey Sachet Combo" data-product-id="32" data-price="1800" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PREMIUM DATES -->
+<section class="px-4 sm:px-6 py-8 bg-white">
+  <div class="flex justify-between items-center mb-5">
+    <div>
+      <h2 class="text-xl font-bold section-heading">Premium Dates</h2>
+      <p class="text-sm text-gray-500 mt-2">Sourced directly from Medina & Arabia</p>
+    </div>
+    <a href="#" class="text-orange-700 text-sm font-semibold border border-orange-700 px-4 py-1.5 rounded-full hover:bg-orange-700 hover:text-white transition">View all →</a>
+  </div>
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+    <div class="prod-card bg-white border border-orange-100 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-orange-600 text-white text-xs px-2 py-0.5 rounded-full">Premium</span>
+      <img src="https://backoffice.ghorerbazar.com/productImages/7Oe7x1771921145.webp" alt="Ajwa Dates" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Ajwa Dates 500g (Medina)</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳2,800</span>
+        <span class="line-through text-gray-400 text-xs">৳3,200</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Ajwa Dates 500g" data-product-id="40" data-price="2800">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Ajwa Dates 500g" data-product-id="40" data-price="2800" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border border-orange-100 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">Popular</span>
+      <img src="https://backoffice.ghorerbazar.com/productImages/YOL6J1767074338.jpg" alt="Medjool Dates" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Medjool Dates 1kg</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳1,600</span>
+        <span class="line-through text-gray-400 text-xs">৳1,900</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Medjool Dates 1kg" data-product-id="41" data-price="1600">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Medjool Dates 1kg" data-product-id="41" data-price="1600" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border border-orange-100 rounded-xl p-3 relative">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRp_-7wXzDeVBVi6ID7wGXIJ9XEFiYgk7CVEA&s" alt="Mabroom Dates" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Mabroom Dates 500g</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳1,200</span> 
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Mabroom Dates 500g" data-product-id="42" data-price="1200">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Mabroom Dates 500g" data-product-id="42" data-price="1200" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border border-orange-100 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-yellow-500 text-white text-xs px-2 py-0.5 rounded-full">Value Pack</span>
+      <img src="https://www.vishalmegamart.com/dw/image/v2/BGHT_PRD/on/demandware.static/-/Sites-vmm-fmcg-master-catalog/default/dw0ae10e99/images/large/1313012058_2.jpg?sw=900&sh=900" alt="Zahidi Dates" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Zahidi Dates 2kg</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳2,000</span>
+        <span class="line-through text-gray-400 text-xs">৳2,400</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Zahidi Dates 2kg" data-product-id="43" data-price="2000">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Zahidi Dates 2kg" data-product-id="43" data-price="2000" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border border-orange-100 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-orange-600 text-white text-xs px-2 py-0.5 rounded-full">Organic</span>
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRccHp5dtbRkLno1qK-xFZ_FNnJMlTDMI3_oISPCHWdXA&s=10" alt="Sukkari Dates" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Sukkari Dates 500g</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳1,350</span>
+        <span class="line-through text-gray-400 text-xs">৳1,500</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Sukkari Dates 500g" data-product-id="44" data-price="1350">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Sukkari Dates 500g" data-product-id="44" data-price="1350" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COOKING ESSENTIALS -->
+<section class="px-4 sm:px-6 py-8 bg-gb">
+  <div class="flex justify-between items-center mb-5">
+    <div>
+      <h2 class="text-xl font-bold section-heading">Cooking Essentials</h2>
+      <p class="text-sm text-gray-500 mt-2">Everything you need in your kitchen</p>
+    </div>
+    <a href="#" class="text-orange-700 text-sm font-semibold border border-orange-700 px-4 py-1.5 rounded-full hover:bg-orange-700 hover:text-white transition">View all →</a>
+  </div>
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+    <div class="prod-card bg-white border border-gray-100 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">Best Seller</span>
+      <img src="https://backoffice.ghorerbazar.com/productImages/vkVdH1767248022.jpg" alt="Mustard Oil" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Mustard Oil 1L</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳380</span>
+        <span class="line-through text-gray-400 text-xs">৳420</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Mustard Oil 1L" data-product-id="50" data-price="380">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Mustard Oil 1L" data-product-id="50" data-price="380" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border border-gray-100 rounded-xl p-3 relative">
+      <img src="https://backoffice.ghorerbazar.com/productImages/hTKy21767012358.jpg" alt="Ghee" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Cow Ghee 500g</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳950</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Cow Ghee 500g" data-product-id="51" data-price="950">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Cow Ghee 500g" data-product-id="51" data-price="950" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border border-gray-100 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">Save 10%</span>
+      <img src="https://backoffice.ghorerbazar.com/productImages/t44nb1767261833.jpg" alt="Spice Pack" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Mixed Spice Pack 200g</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳320</span>
+        <span class="line-through text-gray-400 text-xs">৳360</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Mixed Spice Pack 200g" data-product-id="52" data-price="320">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Mixed Spice Pack 200g" data-product-id="52" data-price="320" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border border-gray-100 rounded-xl p-3 relative">
+      <img src="https://backoffice.ghorerbazar.com/productImages/0LySu1767442263.jpg" alt="Chinigura Rice" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Chinigura Rice 5kg</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳750</span>
+        <span class="line-through text-gray-400 text-xs">৳900</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Chinigura Rice 5kg" data-product-id="53" data-price="750">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Chinigura Rice 5kg" data-product-id="53" data-price="750" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border border-gray-100 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-orange-600 text-white text-xs px-2 py-0.5 rounded-full">Organic</span>
+      <img src="https://backoffice.ghorerbazar.com/productImages/BQ2SU1771304187.jpg" alt="Coconut Oil" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Cold Press Coconut Oil 500ml</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳580</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Cold Press Coconut Oil 500ml" data-product-id="54" data-price="580">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Cold Press Coconut Oil 500ml" data-product-id="54" data-price="580" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ORGANIC CERTIFIED -->
+<section class="px-4 sm:px-6 py-8 bg-white">
+  <div class="flex justify-between items-center mb-5">
+    <div>
+      <h2 class="text-xl font-bold section-heading">Organic Certified</h2>
+      <p class="text-sm text-gray-500 mt-2">Certified organic products for a healthier you</p>
+    </div>
+    <a href="#" class="text-orange-700 text-sm font-semibold border border-orange-700 px-4 py-1.5 rounded-full hover:bg-orange-700 hover:text-white transition">View all →</a>
+  </div>
+  <!-- Organic badge banner -->
+  <div class="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-5 flex items-center gap-4">
+    <div class="text-4xl">🏅</div>
+    <div>
+      <h3 class="font-bold text-orange-800">100% Certified Organic</h3>
+      <p class="text-sm text-orange-700">All products in this section are certified by Bangladesh Organic Standards Board. No pesticides, no additives.</p>
+    </div>
+  </div>
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+    <div class="prod-card bg-white border-2 border-orange-200 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-orange-600 text-white text-xs px-2 py-0.5 rounded-full">Organic</span>
+      <img src="https://backoffice.ghorerbazar.com/productImages/JdeWl1767418564.jpg" alt="Organic Honey" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Organic Raw Honey 500g</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳1,100</span>
+        <span class="line-through text-gray-400 text-xs">৳1,300</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Organic Raw Honey 500g" data-product-id="60" data-price="1100">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Organic Raw Honey 500g" data-product-id="60" data-price="1100" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border-2 border-orange-200 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-orange-600 text-white text-xs px-2 py-0.5 rounded-full">Organic</span>
+      <img src="https://backoffice.ghorerbazar.com/productImages/WzvLW1771392026.jpg" alt="Organic Oil" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Organic Coconut Oil 1L</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳950</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Organic Coconut Oil 1L" data-product-id="61" data-price="950">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Organic Coconut Oil 1L" data-product-id="61" data-price="950" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border-2 border-orange-200 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-orange-600 text-white text-xs px-2 py-0.5 rounded-full">Organic</span>
+      <img src="https://backoffice.ghorerbazar.com/productImages/GuI2U1767262030.jpg" alt="Organic Turmeric" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Organic Turmeric Powder 200g</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳280</span>
+        <span class="line-through text-gray-400 text-xs">৳350</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Organic Turmeric Powder 200g" data-product-id="62" data-price="280">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Organic Turmeric Powder 200g" data-product-id="62" data-price="280" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border-2 border-orange-200 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-orange-600 text-white text-xs px-2 py-0.5 rounded-full">Organic</span>
+      <img src="https://backoffice.ghorerbazar.com/productImages/iXg411779701719.jpeg" alt="Organic Rice" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Organic Brown Rice 2kg</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳480</span>
+        <span class="line-through text-gray-400 text-xs">৳560</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Organic Brown Rice 2kg" data-product-id="63" data-price="480">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Organic Brown Rice 2kg" data-product-id="63" data-price="480" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border-2 border-orange-200 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-orange-600 text-white text-xs px-2 py-0.5 rounded-full">Organic</span>
+      <img src="https://backoffice.ghorerbazar.com/productImages/PpKUt1767012456.jpg" alt="Gawa Ghee" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Organic Gawa Ghee 500g</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳1,200</span>
+        <span class="line-through text-gray-400 text-xs">৳1,400</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Organic Gawa Ghee 500g" data-product-id="64" data-price="1200">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Organic Gawa Ghee 500g" data-product-id="64" data-price="1200" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- JUST FOR YOU -->
+<section class="px-4 sm:px-6 py-8 bg-gb">
+  <div class="flex justify-between items-center mb-5">
+    <div>
+      <h2 class="text-xl font-bold section-heading">Just For You</h2>
+      <p class="text-sm text-gray-500 mt-2">Recommended picks based on popular choices</p>
+    </div>
+    <a href="#" class="text-orange-700 text-sm font-semibold border border-orange-700 px-4 py-1.5 rounded-full hover:bg-orange-700 hover:text-white transition">See More →</a>
+  </div>
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+    <div class="prod-card bg-white border border-gray-100 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-orange-600 text-white text-xs px-2 py-0.5 rounded-full">Trending</span>
+      <img src="https://backoffice.ghorerbazar.com/productImages/CvT2N1767414529.jpg" alt="Product" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Sundarban Honey</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳2,500</span>
+        <span class="line-through text-gray-400 text-xs">৳2,800</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Sundarban Honey" data-product-id="70" data-price="2500">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Sundarban Honey" data-product-id="70" data-price="2500" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border border-gray-100 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-orange-600 text-white text-xs px-2 py-0.5 rounded-full">New</span>
+      <img src="https://backoffice.ghorerbazar.com/productImages/1767418525gNOLj.jpg" alt="Product" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Black Seed Oil 250ml</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳850</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Black Seed Oil 250ml" data-product-id="71" data-price="850">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Black Seed Oil 250ml" data-product-id="71" data-price="850" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border border-gray-100 rounded-xl p-3 relative">
+      <img src="https://backoffice.ghorerbazar.com/productImages/vkVdH1767248022.jpg" alt="Product" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Mustard Oil 500ml</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳680</span>
+        <span class="line-through text-gray-400 text-xs">৳800</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Mustard Oil 500ml" data-product-id="72" data-price="680">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Mustard Oil 500ml" data-product-id="72" data-price="680" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border border-gray-100 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">Hot Deal</span>
+      <img src="https://backoffice.ghorerbazar.com/productImages/gXpJj1767441387.jpg" alt="Product" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Sreemangal's Tea Gold 500g</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳300</span>
+        <span class="line-through text-gray-400 text-xs">৳500</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Sreemangal's Tea Gold 500g" data-product-id="73" data-price="300">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Sreemangal's Tea Gold 500g" data-product-id="73" data-price="300" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+    <div class="prod-card bg-white border border-gray-100 rounded-xl p-3 relative">
+      <span class="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">Save 15%</span>
+      <img src="https://backoffice.ghorerbazar.com/productImages/XA6LK1767439665.jpg" alt="Product" class="w-full rounded-lg mb-2" />
+      <h3 class="font-medium text-sm line-clamp-2 text-black">Rice Flour (Chaler Gura) 2kg</h3>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-orange-600 font-bold">৳200</span>
+        <span class="line-through text-gray-400 text-xs">৳275</span>
+      </div>
+      <div class="cart-actions">
+        <button class="add-to-cart-btn py-2 rounded-lg text-sm font-medium" data-name="Rice Flour (Chaler Gura) 2kg" data-product-id="74" data-price="200">
+          <i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>Add to Cart
+        </button>
+        <button class="buy-now-btn py-2 rounded-lg text-sm font-medium" data-name="Rice Flour (Chaler Gura) 2kg" data-product-id="74" data-price="200" onclick="buyNow(this)">
+          <i data-lucide="zap" class="w-4 h-4 inline-block mr-1"></i>Buy Now
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="py-10 px-4 sm:px-6 bg-white">
+  <h2 class="text-xl font-bold text-center mb-2 section-heading mx-auto">What Our Customers Say</h2>
+  <p class="text-sm text-gray-500 text-center mb-6 mt-2">Trusted by thousands of happy families</p>
+  <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="border border-gray-100 rounded-xl p-5 text-center bg-gray-50 hover:shadow-md transition">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQSUHFf2kRChcnRpkxe6nh46M1Rbc42j4fRB0Qk12koaQ&s=10" alt="Sultana Yesmin" class="w-14 h-14 rounded-full object-cover mx-auto mb-3" />
+      <h4 class="font-semibold text-black">Sultana Yesmin</h4>
+      <p class="text-xs text-gray-400 mb-2">Housewife</p>
+      <p class="text-sm text-gray-600 italic">"Great quality and fast delivery, very satisfied!"</p>
+    </div>
+    <div class="border border-gray-100 rounded-xl p-5 text-center bg-gray-50 hover:shadow-md transition">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSslu47awEs5bMkFeYvokh-WkH09KkzJ2jdblvuKRQVUA&s=10" alt="Ayesha Khan" class="w-14 h-14 rounded-full object-cover mx-auto mb-3" />
+      <h4 class="font-semibold text-black">Ayesha Khan</h4>
+      <p class="text-xs text-gray-400 mb-2">Banker</p>
+      <p class="text-sm text-gray-600 italic">"A trustworthy shop in an age of doubt."</p>
+    </div>
+    <div class="border border-gray-100 rounded-xl p-5 text-center bg-gray-50 hover:shadow-md transition">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLT8aLz4L-FzjCtMWKn0ue9Sws8WMPrgY7GYUSPpRd1w&s=10" alt="Fariha Akter" class="w-14 h-14 rounded-full object-cover mx-auto mb-3" />
+      <h4 class="font-semibold text-black">Fariha Akter</h4>
+      <p class="text-xs text-gray-400 mb-2">Entrepreneur</p>
+      <p class="text-sm text-gray-600 italic">"My father said it was the best ghee he's ever had."</p>
+    </div>
+    <div class="border border-gray-100 rounded-xl p-5 text-center bg-gray-50 hover:shadow-md transition">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTAmqVvFjAQo89kaRKkoykEgSaCxcyw0U2ddTqdn897Sg&s=10" alt="Ahmed Al Kamran" class="w-14 h-14 rounded-full object-cover mx-auto mb-3" />
+      <h4 class="font-semibold text-black">Ahmed Al Kamran</h4>
+      <p class="text-xs text-gray-400 mb-2">Student</p>
+      <p class="text-sm text-gray-600 italic">"I've tried other shops, but this one is the best by far."</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="bg-gray-900 text-gray-300">
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 p-8 sm:p-10">
+    <div>
+      <h3 class="text-white font-bold text-lg mb-3">Ghorer Bazar</h3>
+      <p class="text-sm leading-relaxed">An e-commerce platform delivering safe, healthy food to every home across Bangladesh.</p>
+      <p class="text-sm mt-3">📍 Dhaka, Bangladesh</p>
+      <p class="text-sm mt-1">📞 01700-000000</p>
+      <p class="text-sm mt-1">✉️ info@ghorerbazar.com.bd</p>
+    </div>
+    <div>
+      <h4 class="text-white font-bold mb-3">Information</h4>
+      <ul class="space-y-2 text-sm">
+        <li><a href="#" class="hover:text-orange-400 transition">About Us</a></li>
+        <li><a href="#" class="hover:text-orange-400 transition">Contact Us</a></li>
+        <li><a href="#" class="hover:text-orange-400 transition">Terms &amp; Conditions</a></li>
+        <li><a href="#" class="hover:text-orange-400 transition">Privacy Policy</a></li>
+        <li><a href="#" class="hover:text-orange-400 transition">Return Policy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="text-white font-bold mb-3">Shop By Category</h4>
+      <ul class="space-y-2 text-sm">
+        <li><a href="#" class="hover:text-orange-400 transition">Oil &amp; Ghee</a></li>
+        <li><a href="#" class="hover:text-orange-400 transition">Honey</a></li>
+        <li><a href="#" class="hover:text-orange-400 transition">Dates</a></li>
+        <li><a href="#" class="hover:text-orange-400 transition">Spices</a></li>
+        <li><a href="#" class="hover:text-orange-400 transition">Mango</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="text-white font-bold mb-3">Download App</h4>
+      <p class="text-sm mb-3">Get exclusive app-only offers!</p>
+      <div class="flex flex-col gap-2">
+        <a href="#" class="border border-gray-600 rounded-lg px-3 py-2 flex items-center gap-2 hover:border-orange-500 transition text-sm">
+          <span class="text-xl">▶</span><div><div class="text-xs text-gray-400">GET IT ON</div><div class="font-semibold text-white">Google Play</div></div>
+        </a>
+        <a href="#" class="border border-gray-600 rounded-lg px-3 py-2 flex items-center gap-2 hover:border-orange-500 transition text-sm">
+          <span class="text-xl">🍎</span><div><div class="text-xs text-gray-400">Download on the</div><div class="font-semibold text-white">App Store</div></div>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="border-t border-gray-800 text-center text-sm py-4 text-gray-500">
+    <p>Copyright © 2026 Ghorer Bazar . All rights reserved.</p>
+  </div>
+</footer>
+
+<!-- MOBILE BOTTOM NAV -->
+<div class="fixed bottom-0 w-full flex justify-around bg-white border-t border-gray-200 py-2 md:hidden text-xs z-50 shadow-lg">
+  <a href="#" class="flex flex-col items-center text-orange-500 gap-0.5"><i data-lucide="home" class="w-5 h-5"></i><span>Home</span></a>
+  <a href="#" class="flex flex-col items-center text-gray-600 gap-0.5"><i data-lucide="clipboard-list" class="w-5 h-5"></i><span>Menu</span></a>
+  <a href="#" id="mobile-cart-btn" class="flex flex-col items-center text-gray-600 gap-0.5 relative">
+    <i data-lucide="shopping-cart" class="w-5 h-5"></i><span>Cart</span>
+    <span id="mobile-cart-badge" class="absolute -top-1 right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center hidden">0</span>
+  </a>
+  <a href="#" class="flex flex-col items-center text-gray-600 gap-0.5"><i data-lucide="search" class="w-5 h-5"></i><span>Search</span></a>
+  <a href="#" class="flex flex-col items-center text-gray-600 gap-0.5"><i data-lucide="user" class="w-5 h-5"></i><span>Account</span></a>
+</div>
+
+<script>
+// ============ CART STATE ============
+lucide.createIcons();
+let cartItems = [];
+const FREE_SHIPPING_THRESHOLD = 3000;
+
+// ============ BUY NOW FUNCTION ============
+function buyNow(btn) {
+  const id = btn.dataset.productId;
+  const price = parseInt(btn.dataset.price);
+  const name = btn.dataset.name;
+  cartItems = [{ id, name, price, qty: 1 }]; // Buy Now replaces cart with just this item
+  renderCart();
+  toggleCart(); // open cart sidebar directly, like checkout intent
+}
+
+// ============ CAROUSEL ============
+const track = document.getElementById('carouselTrack');
+const slides = track.querySelectorAll('.carousel-slide');
+const dotsContainer = document.getElementById('carouselDots');
+let current = 0;
+
+slides.forEach((_, i) => {
+  const dot = document.createElement('button');
+  dot.className = `w-2.5 h-2.5 rounded-full transition-all ${i===0?'bg-white scale-125':'bg-white/50'}`;
+  dot.onclick = () => goTo(i);
+  dotsContainer.appendChild(dot);
+});
+
+function goTo(n) {
+  current = (n + slides.length) % slides.length;
+  track.style.transform = `translateX(-${current * 100}%)`;
+  dotsContainer.querySelectorAll('button').forEach((d,i) => {
+    d.className = `w-2.5 h-2.5 rounded-full transition-all ${i===current?'bg-white scale-125':'bg-white/50'}`;
+  });
+}
+
+document.getElementById('carousel-prev').onclick = () => goTo(current - 1);
+document.getElementById('carousel-next').onclick = () => goTo(current + 1);
+setInterval(() => goTo(current + 1), 4000);
+
+// ============ TOGGLE CART ============
+function toggleCart() {
+  document.getElementById('cart-sidebar').classList.toggle('translate-x-full');
+  document.getElementById('cart-overlay').classList.toggle('hidden');
+}
+document.getElementById('cart-btn').onclick = toggleCart;
+document.getElementById('cart-close-btn').onclick = toggleCart;
+document.getElementById('cart-overlay').onclick = toggleCart;
+document.getElementById('mobile-cart-btn').onclick = (e) => { e.preventDefault(); toggleCart(); };
+
+// ============ ADD TO CART ============
+document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const id = this.dataset.productId;
+    const price = parseInt(this.dataset.price);
+    const name = this.dataset.name;
+    const existing = cartItems.find(i => i.id === id);
+    if (existing) { existing.qty++; }
+    else { cartItems.push({ id, name, price, qty: 1 }); }
+
+    // Open cart
+    const sidebar = document.getElementById('cart-sidebar');
+    if (sidebar.classList.contains('translate-x-full')) toggleCart();
+
+    // Button feedback
+    const orig = this.innerHTML;
+    this.innerHTML = '✓ Added!';
+    this.style.background = '#2e7d32';
+    this.style.color = '#fff';
+    setTimeout(() => {
+      this.innerHTML = orig;
+      this.style.background = '';
+      this.style.color = '';
+    }, 1000);
+
+    renderCart();
+  });
+});
+
+// ============ RENDER CART ============
+function renderCart() {
+  const list = document.getElementById('cart-items-list');
+  const emptyMsg = document.getElementById('empty-cart-msg');
+
+  if (cartItems.length === 0) {
+    list.innerHTML = '<p id="empty-cart-msg" class="text-gray-400 text-center mt-16 text-sm">Your cart is empty 🛒</p>';
+    document.getElementById('cart-count').textContent = '0';
+    document.getElementById('cart-subtotal').textContent = '৳0';
+    updateProgressBar(0);
+    return;
+  }
+ 
+  let html = '';
+  let subtotal = 0;
+  let totalQty = 0;
+
+  cartItems.forEach(item => {
+    subtotal += item.price * item.qty;
+    totalQty += item.qty;
+    html += `
+    <div class="flex items-center gap-3 py-3 border-b border-gray-100 last:border-0">
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-medium text-black truncate">${item.name}</p>
+        <p class="text-xs text-orange-700 font-semibold mt-0.5">৳${item.price.toLocaleString()}</p>
+      </div>
+      <div class="flex items-center gap-1">
+        <button class="qty-btn" onclick="changeQty('${item.id}', -1)">−</button>
+        <span class="text-sm font-semibold w-6 text-center">${item.qty}</span>
+        <button class="qty-btn" onclick="changeQty('${item.id}', 1)">+</button>
+      </div>
+      <button onclick="removeItem('${item.id}')" class="text-red-400 hover:text-red-600 ml-1 text-lg">🗑</button>
+    </div>`;
+  });
+
+  list.innerHTML = html;
+  document.getElementById('cart-count').textContent = totalQty;
+  document.getElementById('cart-subtotal').textContent = '৳' + subtotal.toLocaleString();
+
+  // Mobile badge
+  const badge = document.getElementById('mobile-cart-badge');
+  badge.textContent = totalQty;
+  badge.classList.toggle('hidden', totalQty === 0);
+
+  updateProgressBar(subtotal);
+}
+
+function changeQty(id, delta) {
+  const item = cartItems.find(i => i.id === id);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) cartItems = cartItems.filter(i => i.id !== id);
+  renderCart();
+}
+
+function removeItem(id) {
+  cartItems = cartItems.filter(i => i.id !== id);
+  renderCart();
+}
+
+// ============ FREE SHIPPING PROGRESS ============
+function updateProgressBar(subtotal) {
+  const remaining = Math.max(FREE_SHIPPING_THRESHOLD - subtotal, 0);
+  const percent = Math.min((subtotal / FREE_SHIPPING_THRESHOLD) * 100, 100);
+  document.getElementById('progress-fill').style.width = percent + '%';
+  document.getElementById('amount-left').textContent = remaining > 0 ? '৳' + remaining.toLocaleString() : 'Unlocked!';
+  const msg = document.querySelector('#cart-sidebar .p-4.border-b.bg-orange-100 p');
+  if (msg) {
+    if (remaining === 0) {
+      msg.innerHTML = '🎉 <strong class="text-orange-700">Free delivery unlocked!</strong>';
+    } else {
+      msg.innerHTML = `Add <span id="amount-left" class="font-bold text-orange-700">৳${remaining.toLocaleString()}</span> more for <strong>FREE delivery!</strong>`;
+    }
+  }
+}
+
+// ============ CATEGORY NAV ACTIVE ============
+document.querySelectorAll('.cat-link').forEach(link => {
+  link.addEventListener('click', function(e) {
+    e.preventDefault();
+    document.querySelectorAll('.cat-link').forEach(l => l.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
